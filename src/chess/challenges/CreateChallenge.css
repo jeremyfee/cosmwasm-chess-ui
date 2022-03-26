@@ -1,0 +1,19 @@
+.createChallenge {
+  position: relative;
+}
+
+.createChallenge label,
+.createChallenge button {
+  display: block;
+  margin-top: 0.5em;
+}
+
+.createChallenge input,
+.createChallenge select {
+  padding: 0.25em;
+  width: auto;
+}
+
+.createChallenge button {
+  margin-top: 1em;
+}

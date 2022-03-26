@@ -1,0 +1,17 @@
+.games {
+  width: 100%;
+  max-width: 640px;
+}
+
+.games tr:nth-child(2n) {
+  background-color: #eee;
+}
+
+.games td {
+  padding: 0.5em;
+  text-overflow: ellipsis;
+}
+
+.gameover {
+  color: #555;
+}
