@@ -12,7 +12,7 @@ const JUNO: Currency = {
   coinDecimals: 6,
 };
 
-export const TESTING_CHAIN_INFO: ChainInfo = {
+export const CHAIN_INFO: ChainInfo = {
   chainId: "testing",
   chainName: "Testing",
   rpc: "http://127.0.0.1:26657",
@@ -39,3 +39,5 @@ export const TESTING_CHAIN_INFO: ChainInfo = {
     high: 0.04,
   },
 };
+
+export const CONTRACT = "testing address";

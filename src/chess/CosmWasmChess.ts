@@ -1,23 +1,24 @@
+import { StdFee } from "@cosmjs/amino";
 import { ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { CosmWasm } from "./useCosmWasm";
 
 export interface Challenge {
-  block_time_limit?: number;
+  block_created: number;
+  block_limit?: number;
   challenge_id: number;
-  created_block: number;
   created_by: string;
   opponent?: string;
   play_as?: "white" | "black";
 }
 
 export interface CreateChallengeProps {
-  block_time_limit?: number;
+  block_limit?: number;
   opponent?: string;
   play_as?: "white" | "black";
 }
 
 export interface MakeMove {
-  make_move: string;
+  move: string;
 }
 
 export interface OfferDraw {
@@ -25,7 +26,7 @@ export interface OfferDraw {
 }
 
 export function isMakeMove(value: MoveAction): value is MakeMove {
-  return value.hasOwnProperty("make_move");
+  return value.hasOwnProperty("move");
 }
 
 export function isOfferDraw(value: MoveAction): value is OfferDraw {
@@ -34,45 +35,56 @@ export function isOfferDraw(value: MoveAction): value is OfferDraw {
 
 export type MoveAction = "accept_draw" | MakeMove | OfferDraw | "resign";
 
-export interface Move {
-  action: MoveAction;
-  block: number;
-}
+export type Move = [number, MoveAction];
 
 export interface ChessGame {
-  block_time_limit?: number;
+  block_limit?: number;
+  block_start: number;
+  fen: string;
   game_id: number;
   moves: Move[];
   player1: string;
   player2: string;
   status?: string;
-  start_height: number;
-  turn_color?: "white" | "black";
 }
 
 export interface ChessGameSummary {
-  block_time_limit?: number;
+  block_limit?: number;
+  block_start: number;
   game_id: number;
   player1: string;
   player2: string;
   status?: string;
-  start_height: number;
   turn_color?: "white" | "black";
 }
 
 export class CosmWasmChess {
   constructor(public client: CosmWasm, public readonly contract: string) {}
 
-  async acceptChallenge(challenge_id: number): Promise<ExecuteResult> {
-    return this.client.execute(this.contract, {
-      accept_challenge: { challenge_id },
-    });
+  async acceptChallenge(
+    challenge_id: number,
+    fee?: number | StdFee | "auto"
+  ): Promise<ExecuteResult> {
+    return this.client.execute(
+      this.contract,
+      {
+        accept_challenge: { challenge_id },
+      },
+      fee
+    );
   }
 
-  async acceptDraw(game_id: number): Promise<ExecuteResult> {
-    return this.client.execute(this.contract, {
-      move: { action: "accept_draw", game_id },
-    });
+  async acceptDraw(
+    game_id: number,
+    fee?: number | StdFee | "auto"
+  ): Promise<ExecuteResult> {
+    return this.client.execute(
+      this.contract,
+      {
+        turn: { game_id, action: "accept_draw" },
+      },
+      fee
+    );
   }
 
   get address() {
@@ -89,7 +101,13 @@ export class CosmWasmChess {
     return this.client.execute(this.contract, { create_challenge: data });
   }
 
-  async getChallenges(player?: string): Promise<Challenge[]> {
+  async getChallenges({
+    after,
+    player,
+  }: {
+    after?: number;
+    player?: string;
+  }): Promise<Challenge[]> {
     return this.client.queryContractSmart(this.contract, {
       get_challenges: { player: player },
     });
@@ -101,30 +119,58 @@ export class CosmWasmChess {
     });
   }
 
-  async getGames(
-    player?: string,
-    game_over?: boolean
-  ): Promise<ChessGameSummary[]> {
+  async getGames({
+    after,
+    game_over,
+    player,
+  }: {
+    after?: number;
+    game_over?: boolean;
+    player?: string;
+  }): Promise<ChessGameSummary[]> {
     return this.client.queryContractSmart(this.contract, {
-      get_games: { game_over: game_over ?? !!player, player },
+      get_games: { after, game_over: game_over ?? !!player, player },
     });
   }
 
-  async makeMove(game_id: number, make_move: string): Promise<ExecuteResult> {
-    return this.client.execute(this.contract, {
-      move: { action: { make_move }, game_id },
-    });
+  async makeMove(
+    game_id: number,
+    move: string,
+    fee?: number | StdFee | "auto"
+  ): Promise<ExecuteResult> {
+    return this.client.execute(
+      this.contract,
+      {
+        turn: { game_id, action: { move } },
+      },
+      fee
+    );
   }
 
-  async offerDraw(game_id: number, offer_draw: string): Promise<ExecuteResult> {
-    return this.client.execute(this.contract, {
-      move: { action: { offer_draw }, game_id },
-    });
+  async offerDraw(
+    game_id: number,
+    offer_draw: string,
+    fee?: number | StdFee | "auto"
+  ): Promise<ExecuteResult> {
+    return this.client.execute(
+      this.contract,
+      {
+        turn: { game_id, action: { offer_draw } },
+      },
+      fee
+    );
   }
 
-  async resign(game_id: number): Promise<ExecuteResult> {
-    return this.client.execute(this.contract, {
-      move: { action: "resign", game_id },
-    });
+  async resign(
+    game_id: number,
+    fee?: number | StdFee | "auto"
+  ): Promise<ExecuteResult> {
+    return this.client.execute(
+      this.contract,
+      {
+        turn: { game_id, action: "resign" },
+      },
+      fee
+    );
   }
 }

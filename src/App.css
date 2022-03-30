@@ -34,3 +34,8 @@ nav a.active {
 main {
   clear: both;
 }
+
+footer {
+  margin-top: 3em;
+  border-top: 1px #ccc solid;
+}

@@ -22,7 +22,7 @@ export function CreateChallenge(props: CreateChallengeProps) {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     props.onCreateChallenge({
-      block_time_limit: state.block_time_limit || undefined,
+      block_limit: state.block_limit || undefined,
       opponent: state.opponent || undefined,
       play_as: state.play_as || undefined,
     });
@@ -57,17 +57,20 @@ export function CreateChallenge(props: CreateChallengeProps) {
           value={state.opponent}
         />
 
-        {/* <label htmlFor="create_challenge_block_time_limit">
+        <label htmlFor="create_challenge_block_limit">
           Block Time Limit
+          <br />
+          <small>(per player, ~10 blocks/min)</small>
         </label>
         <input
-          id="create_challenge_block_time_limit"
-          name="block_time_limit"
+          id="create_challenge_block_limit"
+          name="block_limit"
           onChange={onChange}
           type="number"
           min="0"
-          value={state.block_time_limit}
-        /> */}
+          placeholder="optional"
+          value={state.block_limit}
+        />
 
         <button disabled={props.disabled}>Create Challenge</button>
       </form>

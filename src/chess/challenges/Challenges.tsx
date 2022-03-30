@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
+import { Link } from "react-router-dom";
 
 import {
   Challenge,
@@ -16,19 +17,36 @@ export function Challenges() {
   const [state, setState] = useState<{
     challenges?: Challenge[];
     error?: unknown;
-    status?: string;
+    status?: ReactNode;
   }>({});
 
   useEffect(() => {
     loadChallenges();
   }, [contract.address]);
 
+  function formatAddress(address?: string) {
+    if (contract.address && contract.address === address) {
+      return "You";
+    } else {
+      return contract.client.formatAddress(address);
+    }
+  }
+
   async function loadChallenges(): Promise<void> {
     setState({ ...state, status: "Loading challenges" });
     return contract
-      .getChallenges()
+      .getChallenges({})
       .then((challenges: Challenge[]) => {
-        setState({ ...state, challenges, status: undefined });
+        let status: ReactNode | undefined = undefined;
+        if (challenges.length === 0) {
+          status = (
+            <>
+              No challenges yet, create a challenge or{" "}
+              <Link to="/games">check games</Link>
+            </>
+          );
+        }
+        setState({ ...state, challenges, status });
       })
       .catch((error: any) => {
         setState({ ...state, error, status: undefined });
@@ -77,25 +95,28 @@ export function Challenges() {
       <div className="challenges-wrapper">
         <div className="challenges">
           {state.error ? <p className="error">{`${state.error}`}</p> : <></>}
-          {state.status ? <p className="status">{`${state.status}`}</p> : <></>}
+          {state.status ? <p className="status">{state.status}</p> : <></>}
 
           {state.challenges && state.challenges.length > 0 ? (
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Play As</th>
-                  <th>Created By</th>
-                  <th>Opponent</th>
+                  <th className="id">ID</th>
+                  <th className="play_as">Play As</th>
+                  <th className="created_by">Created By</th>
+                  <th className="opponent">Opponent</th>
+                  <th className="actions">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {state.challenges.map((c, key) => (
                   <tr key={key}>
-                    <td>{c.challenge_id}</td>
-                    <td>{c.play_as || "random"}</td>
-                    <td>{contract.client.formatAddress(c.created_by)}</td>
-                    <td>{contract.client.formatAddress(c.opponent)}</td>
+                    <td className="id">{c.challenge_id}</td>
+                    <td className="play_as">{c.play_as || "random"}</td>
+                    <td className="created_by">
+                      {formatAddress(c.created_by)}
+                    </td>
+                    <td className="opponent">{formatAddress(c.opponent)}</td>
                     <td>
                       {c.created_by === contract.address ? (
                         <button
@@ -117,7 +138,7 @@ export function Challenges() {
               </tbody>
             </table>
           ) : (
-            <p className="status">No challenges yet</p>
+            <></>
           )}
         </div>
 

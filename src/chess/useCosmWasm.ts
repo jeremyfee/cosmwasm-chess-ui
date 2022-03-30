@@ -8,8 +8,6 @@ import {
   SigningCosmWasmClient,
 } from "@cosmjs/cosmwasm-stargate";
 
-import { JUNO_CHAIN_INFO } from "../config/juno";
-
 // extend window with CosmJS and Keplr properties
 interface KeplrWindow extends Window {
   keplr: Keplr;
@@ -45,7 +43,7 @@ export interface CosmWasm extends CosmWasmState {
 
 export function useCosmWasm(
   chainInfo: ChainInfo,
-  defaultFee: number | StdFee | "auto" = { amount: [], gas: "10000" }
+  defaultFee: number | StdFee | "auto" = { amount: [], gas: "200000" }
 ): CosmWasm {
   const ALREADY_CONNECTED_KEY = `connected_${chainInfo.chainId}`;
 

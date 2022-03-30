@@ -1,4 +1,4 @@
-.games {
+.games table {
   width: 100%;
   max-width: 640px;
 }
@@ -10,6 +10,16 @@
 .games td {
   padding: 0.5em;
   text-overflow: ellipsis;
+}
+
+.games .id,
+.games .white,
+.games .black {
+  text-align: center;
+}
+
+.games .game_status {
+  text-align: left;
 }
 
 .gameover {

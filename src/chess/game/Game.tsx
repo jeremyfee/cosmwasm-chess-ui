@@ -1,3 +1,4 @@
+import { StdFee } from "@cosmjs/amino";
 import { Chess, ChessInstance, Move } from "chess.js";
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router";
@@ -14,9 +15,9 @@ import "./Game.css";
 function parseGame(game: ChessGame): ChessInstance {
   const chess = new Chess();
   game.moves.forEach((move) => {
-    const action = move.action;
+    const action = move[1];
     if (isMakeMove(action)) {
-      chess.move(action.make_move);
+      chess.move(action.move);
     } else if (isOfferDraw(action)) {
       chess.move(action.offer_draw);
     }
@@ -27,6 +28,7 @@ function parseGame(game: ChessGame): ChessInstance {
 export function Game() {
   const contract = useOutletContext<CosmWasmChess>();
   const { game_id } = useParams();
+
   const [state, setState] = useState<{
     // connected wallet address
     address?: string;
@@ -36,6 +38,8 @@ export function Game() {
     drawOffered?: boolean;
     // error loading game
     error?: unknown;
+    // estimated gas fee
+    fee?: number | StdFee | "auto";
     // game from contract
     game?: ChessGame;
     // whether player can interact with board
@@ -46,6 +50,8 @@ export function Game() {
     pendingMove?: Move;
     // current status, loading, game over, etc
     status?: string;
+    // next turn
+    turn?: "w" | "b";
   }>({});
 
   // update board/controls when address changes
@@ -60,6 +66,24 @@ export function Game() {
   useEffect(() => {
     loadGame();
   }, [game_id]);
+
+  function estimateFee(game: ChessGame): number | StdFee | "auto" {
+    let gas = "200000";
+    let moves = game.moves.length;
+
+    if (moves >= 60) {
+      // 0.4.1 crosses 250k around move 80
+      gas = "300000";
+    } else if (moves >= 20) {
+      // 0.4.1 crosses 200k around move 25
+      gas = "250000";
+    }
+
+    return {
+      amount: [],
+      gas,
+    };
+  }
 
   function formatAddress(address?: string) {
     if (contract.address && contract.address === address) {
@@ -81,6 +105,7 @@ export function Game() {
           return {
             ...state,
             chess: parseGame(game),
+            fee: estimateFee(game),
             game,
             status: undefined,
           };
@@ -96,7 +121,7 @@ export function Game() {
     }
     setStatus("Executing Accept Draw");
     return contract
-      .acceptDraw(+game_id)
+      .acceptDraw(+game_id, state.fee)
       .then(loadGame)
       .catch(setError);
   }
@@ -122,9 +147,9 @@ export function Game() {
       return;
     }
     const move = state.pendingMove.san;
-    setStatus(`Executing Make Move (${move})`);
+    setStatus(`Executing Move (${move})`);
     return contract
-      .makeMove(+game_id, state.pendingMove.san)
+      .makeMove(+game_id, state.pendingMove.san, state.fee)
       .then(loadGame)
       .catch(setError);
   }
@@ -136,7 +161,7 @@ export function Game() {
     const move = state.pendingMove.san;
     setStatus(`Executing Offer Draw (${move})`);
     return contract
-      .offerDraw(+game_id, state.pendingMove.san)
+      .offerDraw(+game_id, state.pendingMove.san, state.fee)
       .then(loadGame)
       .catch(setError);
   }
@@ -147,7 +172,7 @@ export function Game() {
     }
     setStatus("Executing Resign");
     return contract
-      .resign(+game_id)
+      .resign(+game_id, state.fee)
       .then(loadGame)
       .catch(setError);
   }
@@ -173,7 +198,7 @@ export function Game() {
       // check if draw offered
       let drawOffered = false;
       if (game.moves.length > 0) {
-        drawOffered = isOfferDraw(game.moves[game.moves.length - 1].action);
+        drawOffered = isOfferDraw(game.moves[game.moves.length - 1][1]);
       }
       // check whether current player can make move
       const turn = chess.turn();
@@ -190,6 +215,7 @@ export function Game() {
         drawOffered,
         interactive,
         orientation,
+        turn,
       };
     });
   }
@@ -202,7 +228,7 @@ export function Game() {
           (
           {state.game?.status
             ? state.game.status
-            : `${state.game?.turn_color} to play`}
+            : `${state.turn === "b" ? "Black" : "White"} to play`}
           )
         </small>
       </h2>

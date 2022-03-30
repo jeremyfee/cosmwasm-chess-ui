@@ -7,7 +7,7 @@ const JUNO: Currency = {
   coinGeckoId: "juno-network",
 };
 
-export const JUNO_CHAIN_INFO: ChainInfo = {
+export const CHAIN_INFO: ChainInfo = {
   chainId: "juno-1",
   chainName: "Juno",
   rpc: "https://rpc.juno.omniflix.co",
@@ -33,3 +33,7 @@ export const JUNO_CHAIN_INFO: ChainInfo = {
     high: 0.04,
   },
 };
+
+// 0.4.1
+export const CONTRACT =
+  "juno19jrfw6y7ljxnh389cl9eewrs4rfgf0w92g0m59lp0llvdsf8a0csunfq3p";

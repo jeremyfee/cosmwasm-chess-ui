@@ -1,7 +1,12 @@
 {
   "name": "cosmwasm-chess-ui",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "license": "CC0-1.0",
+  "homepage": "https://github.com/jeremyfee/cosmwasm-chess-ui#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeremyfee/cosmwasm-chess-ui.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

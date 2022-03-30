@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 
 import { ChessGameSummary, CosmWasmChess } from "../CosmWasmChess";
@@ -8,7 +8,7 @@ export function Games() {
   const contract = useOutletContext<CosmWasmChess>();
   const [state, setState] = useState<{
     games?: ChessGameSummary[];
-    status?: string;
+    status?: ReactNode;
     error?: unknown;
   }>({});
 
@@ -27,10 +27,19 @@ export function Games() {
   async function loadGames(): Promise<void> {
     setState({ ...state, status: "Loading games" });
     return contract
-      .getGames(contract.address)
+      .getGames({ player: contract.address })
       .then((games: ChessGameSummary[]) => {
         setState((state) => {
-          return { ...state, games, status: undefined };
+          let status: ReactNode | undefined = undefined;
+          if (games.length === 0) {
+            status = (
+              <>
+                No games yet,{" "}
+                <Link to="/challenges">find or create a challenge</Link>
+              </>
+            );
+          }
+          return { ...state, games, status };
         });
       })
       .catch((error: any) => {
@@ -46,23 +55,23 @@ export function Games() {
       {state.error ? <p className="error">{`${state.error}`}</p> : <></>}
       {state.status ? <p className="status">{state.status}</p> : <></>}
 
-      {state.games ? (
+      {state.games && state.games.length > 0 ? (
         <table className="games">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>White</th>
-              <th>Black</th>
-              <th>Status</th>
+              <th className="game_id">ID</th>
+              <th className="white">White</th>
+              <th className="black">Black</th>
+              <th className="game_status">Status</th>
             </tr>
           </thead>
           <tbody>
             {state.games.map((g, key) => (
               <tr key={key} className={g.status ? "gameover" : ""}>
-                <td>{g.game_id}</td>
-                <td>{formatAddress(g.player1)}</td>
-                <td>{formatAddress(g.player2)}</td>
-                <td>
+                <td className="game_id">{g.game_id}</td>
+                <td className="white">{formatAddress(g.player1)}</td>
+                <td className="black">{formatAddress(g.player2)}</td>
+                <td className="game_status">
                   <Link to={`/games/${g.game_id}`}>
                     {g.status ? g.status : `${g.turn_color} to play`}
                   </Link>
@@ -72,9 +81,7 @@ export function Games() {
           </tbody>
         </table>
       ) : (
-        <p className="status">
-          No games yet. <Link to="/challenges">Find or Create a Challenge</Link>
-        </p>
+        <></>
       )}
     </>
   );
