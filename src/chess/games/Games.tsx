@@ -27,7 +27,26 @@ export function Games() {
   async function loadGames(): Promise<void> {
     setState({ ...state, status: "Loading games" });
     return contract
-      .getGames({ player: contract.address })
+      .getGames({
+        // worry about filtering once there are too many games
+        /* player: contract.address */
+      })
+      .then((games: ChessGameSummary[]) => {
+        // sort player games first, then by game id desc (newer first)
+        const address = contract.address || "none";
+        games.sort((a, b) => {
+          const in_a = address in [a.player1, a.player2];
+          const in_b = address in [b.player1, b.player2];
+          if (in_a && !in_b) {
+            return -1;
+          } else if (!in_a && in_b) {
+            return 1;
+          } else {
+            return a.game_id > b.game_id ? -1 : 1;
+          }
+        });
+        return games;
+      })
       .then((games: ChessGameSummary[]) => {
         setState((state) => {
           let status: ReactNode | undefined = undefined;

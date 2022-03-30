@@ -37,6 +37,22 @@ export function Challenges() {
     return contract
       .getChallenges({})
       .then((challenges: Challenge[]) => {
+        // sort player challenges first, then by game id desc (newer first)
+        const address = contract.address || "none";
+        challenges.sort((a, b) => {
+          const in_a = address in [a.created_by, a.opponent];
+          const in_b = address in [b.created_by, b.opponent];
+          if (in_a && !in_b) {
+            return -1;
+          } else if (!in_a && in_b) {
+            return 1;
+          } else {
+            return a.challenge_id > b.challenge_id ? -1 : 1;
+          }
+        });
+        return challenges;
+      })
+      .then((challenges: Challenge[]) => {
         let status: ReactNode | undefined = undefined;
         if (challenges.length === 0) {
           status = (
