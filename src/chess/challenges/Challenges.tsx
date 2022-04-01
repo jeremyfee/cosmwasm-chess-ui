@@ -28,7 +28,7 @@ export function Challenges() {
     if (contract.address && contract.address === address) {
       return "You";
     } else {
-      return contract.client.formatAddress(address);
+      return address;
     }
   }
 
