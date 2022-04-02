@@ -7,8 +7,9 @@ import {
   CosmWasmChess,
   CreateChallengeProps,
 } from "../CosmWasmChess";
-import "./Challenges.css";
+import { ChallengeSummary } from "./ChallengeSummary";
 import { CreateChallenge } from "./CreateChallenge";
+import "./Challenges.css";
 
 export function Challenges() {
   let navigate = useNavigate();
@@ -24,7 +25,7 @@ export function Challenges() {
     loadChallenges();
   }, [contract.address]);
 
-  function formatAddress(address?: string) {
+  function formatAddress(address?: string): string | undefined {
     if (contract.address && contract.address === address) {
       return "You";
     } else {
@@ -106,62 +107,33 @@ export function Challenges() {
 
   return (
     <>
-      <h2>Challenges</h2>
-
       <div className="challenges-wrapper">
         <div className="challenges">
+          <h2>Challenges</h2>
           {state.error ? <p className="error">{`${state.error}`}</p> : <></>}
           {state.status ? <p className="status">{state.status}</p> : <></>}
-
           {state.challenges && state.challenges.length > 0 ? (
-            <table>
-              <thead>
-                <tr>
-                  <th className="id">ID</th>
-                  <th className="play_as">Play As</th>
-                  <th className="created_by">Created By</th>
-                  <th className="opponent">Opponent</th>
-                  <th className="actions">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {state.challenges.map((c, key) => (
-                  <tr key={key}>
-                    <td className="id">{c.challenge_id}</td>
-                    <td className="play_as">{c.play_as || "random"}</td>
-                    <td className="created_by">
-                      {formatAddress(c.created_by)}
-                    </td>
-                    <td className="opponent">{formatAddress(c.opponent)}</td>
-                    <td>
-                      {c.created_by === contract.address ? (
-                        <button
-                          onClick={() => onCancelChallenge(c.challenge_id)}
-                        >
-                          Cancel
-                        </button>
-                      ) : (
-                        <button
-                          disabled={!contract.address}
-                          onClick={() => onAcceptChallenge(c.challenge_id)}
-                        >
-                          Accept
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            state.challenges.map((c) => (
+              <ChallengeSummary
+                challenge={c}
+                formatAddress={formatAddress}
+                key={c.challenge_id}
+                onAcceptChallenge={onAcceptChallenge}
+                onCancelChallenge={onCancelChallenge}
+              />
+            ))
           ) : (
             <></>
           )}
         </div>
 
-        <CreateChallenge
-          disabled={!contract.address}
-          onCreateChallenge={onCreateChallenge}
-        />
+        <div className="createChallenge">
+          <h3>Create Challenge</h3>
+          <CreateChallenge
+            disabled={!contract.address}
+            onCreateChallenge={onCreateChallenge}
+          />
+        </div>
       </div>
     </>
   );

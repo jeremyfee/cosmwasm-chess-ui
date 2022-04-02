@@ -3,6 +3,7 @@ import { Link, useOutletContext } from "react-router-dom";
 
 import { ChessGameSummary, CosmWasmChess } from "../CosmWasmChess";
 import "./Games.css";
+import { GameSummary } from "./GameSummary";
 
 export function Games() {
   const contract = useOutletContext<CosmWasmChess>();
@@ -69,39 +70,20 @@ export function Games() {
   }
 
   return (
-    <>
-      <h2>Games</h2>
-      {state.error ? <p className="error">{`${state.error}`}</p> : <></>}
-      {state.status ? <p className="status">{state.status}</p> : <></>}
+    <div className="games-wrapper">
+      <div className="games">
+        <h2>Games</h2>
+        {state.error ? <p className="error">{`${state.error}`}</p> : <></>}
+        {state.status ? <p className="status">{state.status}</p> : <></>}
 
-      {state.games && state.games.length > 0 ? (
-        <table className="games">
-          <thead>
-            <tr>
-              <th className="game_id">ID</th>
-              <th className="white">White</th>
-              <th className="black">Black</th>
-              <th className="game_status">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {state.games.map((g, key) => (
-              <tr key={key} className={g.status ? "gameover" : ""}>
-                <td className="game_id">{g.game_id}</td>
-                <td className="white">{formatAddress(g.player1)}</td>
-                <td className="black">{formatAddress(g.player2)}</td>
-                <td className="game_status">
-                  <Link to={`/games/${g.game_id}`}>
-                    {g.status ? g.status : `${g.turn_color} to play`}
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <></>
-      )}
-    </>
+        {state.games && state.games.length > 0 ? (
+          state.games.map((game) => (
+            <GameSummary formatAddress={formatAddress} game={game} />
+          ))
+        ) : (
+          <></>
+        )}
+      </div>
+    </div>
   );
 }

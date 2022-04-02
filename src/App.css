@@ -1,7 +1,6 @@
-.login {
-  float: right;
-  text-align: right;
-  padding: 0.5em;
+body {
+  font-family: sans-serif;
+  color: #333;
 }
 
 h1 {

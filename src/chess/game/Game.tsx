@@ -8,6 +8,7 @@ import {
   ChessGame,
   isMakeMove,
   isOfferDraw,
+  formatGameSummaryStatus,
 } from "../CosmWasmChess";
 import { ChessBoard } from "./ChessBoard";
 import "./Game.css";
@@ -42,6 +43,8 @@ export function Game() {
     fee?: number | StdFee | "auto";
     // game from contract
     game?: ChessGame;
+    // game history
+    history?: Move[];
     // whether player can interact with board
     interactive?: boolean;
     // board orientation
@@ -91,6 +94,26 @@ export function Game() {
     } else {
       return address;
     }
+  }
+
+  function formatHistory(history: Move[]) {
+    const num_moves = Math.ceil(history.length / 2);
+    const move_numbers = Array.from(Array(num_moves).keys());
+    return (
+      <ol>
+        {move_numbers.map((move) => {
+          const index = move * 2;
+          const white = history[index];
+          const black =
+            history.length > index + 1 ? history[index + 1] : undefined;
+          return (
+            <li>
+              {white.san} {black ? black.san : ""}
+            </li>
+          );
+        })}
+      </ol>
+    );
   }
 
   async function loadGame(): Promise<void> {
@@ -146,7 +169,11 @@ export function Game() {
     if (!game_id || !state.pendingMove) {
       return;
     }
-    const move = state.pendingMove.san;
+    let move = state.pendingMove.san;
+    // contract expects zeros
+    if (move.indexOf("O") === 0) {
+      move = move.replace(/o/gi, "0");
+    }
     setStatus(`Executing Move (${move})`);
     return contract
       .makeMove(+game_id, state.pendingMove.san, state.fee)
@@ -200,6 +227,7 @@ export function Game() {
       if (game.moves.length > 0) {
         drawOffered = isOfferDraw(game.moves[game.moves.length - 1][1]);
       }
+      const history = chess.history({ verbose: true });
       // check whether current player can make move
       const turn = chess.turn();
       const interactive =
@@ -213,6 +241,7 @@ export function Game() {
       return {
         ...state,
         drawOffered,
+        history,
         interactive,
         orientation,
         turn,
@@ -221,84 +250,93 @@ export function Game() {
   }
 
   return (
-    <>
-      <h2>
-        Game {game_id}{" "}
-        <small>
-          (
-          {state.game?.status
-            ? state.game.status
-            : `${state.turn === "b" ? "Black" : "White"} to play`}
-          )
-        </small>
-      </h2>
+    <div className="game-wrapper">
+      <div className="game">
+        <h2>
+          Game {game_id}{" "}
+          <small>
+            (
+            {formatGameSummaryStatus(
+              state.game?.status,
+              state.turn === "b" ? "black" : "white"
+            )}
+            )
+          </small>
+        </h2>
 
-      {state.game?.status ? (
-        <p className="status">Game over</p>
-      ) : (
-        <>
-          <div className="actions">
-            <button
-              className="cancel"
-              disabled={!state.pendingMove}
-              onClick={onCancelMoveClick}
-            >
-              Cancel
-            </button>
-            <button
-              className="makeMove"
-              disabled={!state.pendingMove}
-              onClick={onMakeMoveClick}
-            >
-              Make Move
-            </button>
-            <button
-              className="acceptDraw"
-              disabled={!state.drawOffered}
-              onClick={onAcceptDrawClick}
-            >
-              Accept Draw
-            </button>
-            <button
-              className="offerDraw"
-              disabled={state.drawOffered || !state.pendingMove}
-              onClick={onOfferDrawClick}
-            >
-              Offer Draw
-            </button>
-            <button
-              className="resign"
-              disabled={!state.interactive}
-              onClick={onResignClick}
-            >
-              Resign
-            </button>
+        {state.error ? <p className="error">{`${state.error}`}</p> : ""}
+        {state.status ? <p className="status">{state.status}</p> : ""}
+
+        {state.chess ? (
+          <div className="board">
+            <ChessBoard
+              chess={state.chess}
+              interactive={state.interactive}
+              onMove={onBoardMove}
+              orientation={state.orientation}
+            />
           </div>
-        </>
-      )}
+        ) : (
+          ""
+        )}
 
-      {state.error ? <p className="error">{`${state.error}`}</p> : ""}
-      {state.status ? <p className="status">{state.status}</p> : ""}
+        {state.game?.status ? (
+          <p className="status">Game over</p>
+        ) : (
+          <>
+            <div className="actions">
+              <button
+                className="cancel"
+                disabled={!state.pendingMove}
+                onClick={onCancelMoveClick}
+              >
+                Cancel
+              </button>
+              <button
+                className="makeMove"
+                disabled={!state.pendingMove}
+                onClick={onMakeMoveClick}
+              >
+                Make Move
+              </button>
+              <button
+                className="acceptDraw"
+                disabled={!state.drawOffered}
+                onClick={onAcceptDrawClick}
+              >
+                Accept Draw
+              </button>
+              <button
+                className="offerDraw"
+                disabled={state.drawOffered || !state.pendingMove}
+                onClick={onOfferDrawClick}
+              >
+                Offer Draw
+              </button>
+              <button
+                className="resign"
+                disabled={!state.interactive}
+                onClick={onResignClick}
+              >
+                Resign
+              </button>
+            </div>
+          </>
+        )}
+      </div>
 
-      {state.chess ? (
-        <div className="board">
-          <ChessBoard
-            chess={state.chess}
-            interactive={state.interactive}
-            onMove={onBoardMove}
-            orientation={state.orientation}
-          />
-        </div>
-      ) : (
-        ""
-      )}
+      <div className="controls">
+        <h3>Details</h3>
+        <dl>
+          <dt>White</dt>
+          <dd>{formatAddress(state.game?.player1)}</dd>
+          <dt>Black</dt>
+          <dd>{formatAddress(state.game?.player2)}</dd>
+        </dl>
 
-      <dl>
-        <dt>White</dt>
-        <dd>{formatAddress(state.game?.player1)}</dd>
-        <dt>Black</dt>
-        <dd>{formatAddress(state.game?.player2)}</dd>
-      </dl>
-    </>
+        <h4>Moves</h4>
+        {state.history ? formatHistory(state.history) : <></>}
+      </div>
+    </div>
   );
 }

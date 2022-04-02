@@ -32,48 +32,45 @@ export function CreateChallenge(props: CreateChallengeProps) {
   };
 
   return (
-    <div className="createChallenge">
-      <h4>Create Challenge</h4>
-      <form onSubmit={onSubmit}>
-        <label htmlFor="create_challenge_play_as">Play As</label>
-        <select
-          id="create_challenge_play_as"
-          name="play_as"
-          onChange={onChange}
-          value={state.play_as}
-        >
-          <option value="">Random</option>
-          <option value="white">White</option>
-          <option value="black">Black</option>
-        </select>
+    <form onSubmit={onSubmit}>
+      <label htmlFor="create_challenge_play_as">Play As</label>
+      <select
+        id="create_challenge_play_as"
+        name="play_as"
+        onChange={onChange}
+        value={state.play_as}
+      >
+        <option value="">Random</option>
+        <option value="white">White</option>
+        <option value="black">Black</option>
+      </select>
 
-        <label htmlFor="create_challenge_opponent">Opponent Address</label>
-        <input
-          id="create_challenge_opponent"
-          name="opponent"
-          onChange={onChange}
-          placeholder="optional"
-          type="text"
-          value={state.opponent}
-        />
+      <label htmlFor="create_challenge_opponent">Opponent Address</label>
+      <input
+        id="create_challenge_opponent"
+        name="opponent"
+        onChange={onChange}
+        placeholder="optional"
+        type="text"
+        value={state.opponent}
+      />
 
-        <label htmlFor="create_challenge_block_limit">
-          Block Time Limit
-          <br />
-          <small>(per player, ~10 blocks/min)</small>
-        </label>
-        <input
-          id="create_challenge_block_limit"
-          name="block_limit"
-          onChange={onChange}
-          type="number"
-          min="0"
-          placeholder="optional"
-          value={state.block_limit}
-        />
+      <label htmlFor="create_challenge_block_limit">
+        Block Time Limit
+        <br />
+        <small>(per player, ~10 blocks/min)</small>
+      </label>
+      <input
+        id="create_challenge_block_limit"
+        name="block_limit"
+        onChange={onChange}
+        type="number"
+        min="0"
+        placeholder="optional"
+        value={state.block_limit}
+      />
 
-        <button disabled={props.disabled}>Create Challenge</button>
-      </form>
-    </div>
+      <button disabled={props.disabled}>Create Challenge</button>
+    </form>
   );
 }

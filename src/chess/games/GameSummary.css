@@ -1,0 +1,42 @@
+
+
+.gameSummary {
+  border: 1px solid #ccc;
+  border-radius: 0.5em;
+  display: flex;
+  padding: 0.5em;
+}
+
+.gameSummary + .gameSummary {
+  margin-top: 1em;
+}
+
+.gameSummary .players {
+  flex: 1;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  text-overflow: ellipsis;
+}
+
+.gameSummary .actions {
+  margin-left: 1em;
+  padding: 1em;
+}
+
+.gameSummary small {
+  color: #666;
+}
+
+.gameSummary p {
+  margin: 0;
+}
+
+.gameSummary p+p {
+  margin-top: 0.25em;
+}
+
+.gameover {
+  background-color: #eee;
+  font-style: italic;
+}

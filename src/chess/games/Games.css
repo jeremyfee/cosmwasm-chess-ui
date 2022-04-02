@@ -1,27 +1,10 @@
-.games table {
-  width: 100%;
-  max-width: 640px;
-}
+@media screen and (min-width: 540px) {
+  .games-wrapper {
+    display: flex;
+    max-width: 100%;
+  }
 
-.games tr:nth-child(2n) {
-  background-color: #eee;
-}
-
-.games td {
-  padding: 0.5em;
-  text-overflow: ellipsis;
-}
-
-.games .id,
-.games .white,
-.games .black {
-  text-align: center;
-}
-
-.games .game_status {
-  text-align: left;
-}
-
-.gameover {
-  color: #555;
+  .games {
+    flex: 1;
+  }
 }

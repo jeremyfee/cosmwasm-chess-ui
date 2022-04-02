@@ -13,7 +13,7 @@ export function Profile(props: ProfileProps) {
         <>
           <button onClick={disconnect}>Disconnect Keplr</button>
           <br />
-          {formatAddress(address)}
+          <small>{formatAddress(address)}</small>
         </>
       ) : (
         <>

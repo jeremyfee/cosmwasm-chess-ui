@@ -1,16 +1,19 @@
-.createChallenge {
-  position: relative;
+
+.createChallenge label {
+  color: #666;
+  display: block;
+  font-size: small;
+  margin-top: 1em;
 }
 
-.createChallenge label,
 .createChallenge button {
   display: block;
-  margin-top: 0.5em;
+  margin-top: 1em;
 }
 
 .createChallenge input,
 .createChallenge select {
-  padding: 0.25em;
+  padding: 0.25em 0;
   width: auto;
 }
 

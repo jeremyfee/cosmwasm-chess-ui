@@ -1,35 +1,16 @@
-.games table {
-  width: 100%;
-  max-width: 640px;
-}
-
-.challenges tr:nth-child(2) {
-  background-color: #eee;
-}
-
-.challenges td,
-.challenges th {
-  padding: 0.5em;
-}
-
-.challenges .id,
-.challenges .play_as,
-.challenges .created_by,
-.challenges .opponent {
-  text-align: center;
-}
-
-@media screen and (min-width: 640px) {
+@media screen and (min-width: 540px) {
   .challenges-wrapper {
     display: flex;
-    flex-direction: row;
+    max-width: 100%;
   }
 
   .challenges {
-    flex: 4;
-  }
-  .createChallenge {
     flex: 1;
-    margin-left: 1em;
+    width: 70vw;
+  }
+
+  .createChallenge {
+    margin-left: 3vw;
+    max-width: 25vw;
   }
 }

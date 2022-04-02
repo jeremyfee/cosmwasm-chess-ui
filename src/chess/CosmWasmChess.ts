@@ -58,6 +58,19 @@ export interface ChessGameSummary {
   turn_color?: "white" | "black";
 }
 
+export function formatGameSummaryStatus(
+  status?: string,
+  turn_color: "white" | "black" = "white"
+) {
+  if (status) {
+    status = status.replace("_", " ");
+  } else {
+    status = `${turn_color} to play`;
+  }
+  status = status.charAt(0).toUpperCase() + status.slice(1);
+  return status;
+}
+
 export class CosmWasmChess {
   constructor(public client: CosmWasm, public readonly contract: string) {}
 
