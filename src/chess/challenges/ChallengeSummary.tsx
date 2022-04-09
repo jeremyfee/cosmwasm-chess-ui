@@ -1,22 +1,20 @@
-import { Challenge } from "../CosmWasmChess";
+import { useOutletContext } from "react-router";
+import { Address } from "../../Address";
+import { Challenge, CosmWasmChess } from "../CosmWasmChess";
 import "./ChallengeSummary.css";
 
 export interface ChallengeElProps {
   address?: string;
   challenge: Challenge;
-  formatAddress: (address?: string) => string | undefined;
   onAcceptChallenge: (id: number) => void;
   onCancelChallenge: (id: number) => void;
 }
 
 export function ChallengeSummary(props: ChallengeElProps) {
-  const {
-    address,
-    challenge: c,
-    formatAddress,
-    onAcceptChallenge,
-    onCancelChallenge,
-  } = props;
+  const { challenge: c, onAcceptChallenge, onCancelChallenge } = props;
+  const contract = useOutletContext<CosmWasmChess>();
+
+  const address = contract.address;
 
   const player_color = c.play_as || "random color";
   const opponent_color =
@@ -26,8 +24,12 @@ export function ChallengeSummary(props: ChallengeElProps) {
       ? "white"
       : player_color;
 
+  const enabled =
+    address &&
+    (c.created_by === address || c.opponent === address || !c.opponent);
+
   return (
-    <section className="challengeSummary">
+    <section className={"challengeSummary" + (!enabled ? " disabled" : "")}>
       <div className="players">
         <p className="challenge_id">
           <strong>#{c.challenge_id}</strong>
@@ -35,26 +37,37 @@ export function ChallengeSummary(props: ChallengeElProps) {
         <p className="created_by">
           <small>Created By ({player_color})</small>
           <br />
-          <span className="player">{formatAddress(c.created_by)}</span>
+          <span className="player">
+            {c.created_by === contract.address ? (
+              "you"
+            ) : (
+              <Address address={c.created_by} />
+            )}
+          </span>
         </p>
         <p className="opponent">
           <small>Opponent ({opponent_color})</small>
           <br />
-          <span className="player">{formatAddress(c.opponent || "open")}</span>
+          <span className="player">
+            {!c.opponent ? (
+              "open"
+            ) : c.opponent === contract.address ? (
+              "you"
+            ) : (
+              <Address address={c.opponent} />
+            )}
+          </span>
         </p>
       </div>
 
       <div className="actions">
-        {c.created_by === address ? (
-          <button
-            disabled={c.created_by !== address}
-            onClick={() => onCancelChallenge(c.challenge_id)}
-          >
+        {c.created_by === contract.address ? (
+          <button onClick={() => onCancelChallenge(c.challenge_id)}>
             Cancel
           </button>
         ) : (
           <button
-            disabled={!address}
+            disabled={!enabled}
             onClick={() => onAcceptChallenge(c.challenge_id)}
           >
             Accept

@@ -20,9 +20,8 @@ nav a {
   padding: 5px;
 }
 
-nav a,
-.profile {
-  margin-left: 20px;
+nav a {
+  margin-right: 20px;
   text-align: center;
 }
 

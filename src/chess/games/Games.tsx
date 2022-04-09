@@ -1,5 +1,6 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
+import { Address } from "../../Address";
 
 import { ChessGameSummary, CosmWasmChess } from "../CosmWasmChess";
 import "./Games.css";
@@ -15,15 +16,7 @@ export function Games() {
 
   useEffect(() => {
     loadGames();
-  }, [contract.address]);
-
-  function formatAddress(address?: string) {
-    if (contract.address && contract.address === address) {
-      return "You";
-    } else {
-      return address;
-    }
-  }
+  }, []); // no filtering based on address yet [contract.address]);
 
   async function loadGames(): Promise<void> {
     setState({ ...state, status: "Loading games" });
@@ -78,7 +71,7 @@ export function Games() {
 
         {state.games && state.games.length > 0 ? (
           state.games.map((game) => (
-            <GameSummary formatAddress={formatAddress} game={game} />
+            <GameSummary game={game} key={game.game_id} />
           ))
         ) : (
           <></>

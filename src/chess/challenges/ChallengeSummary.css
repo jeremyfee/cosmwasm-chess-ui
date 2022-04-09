@@ -7,6 +7,11 @@
   padding: 0.5em;
 }
 
+.challengeSummary.disabled {
+  background-color: #eee;
+  font-style: italic;
+}
+
 .challengeSummary + .challengeSummary {
   margin-top: 1em;
 }

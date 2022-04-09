@@ -7,6 +7,7 @@ import { useCosmWasm } from "./chess/useCosmWasm";
 
 // import { CHAIN_INFO, CONTRACT } from "./config/testnet";
 import { CHAIN_INFO, CONTRACT } from "./config/juno";
+import { Address } from "./Address";
 
 function App() {
   const cosmWasm = useCosmWasm(CHAIN_INFO);
@@ -14,18 +15,6 @@ function App() {
 
   const navClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? "active" : "";
-
-  function onAddressClick(className: string) {
-    const address = document.querySelector("." + className);
-    if (!address) {
-      return;
-    }
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(address);
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-  }
 
   return (
     <div className="App">
@@ -57,13 +46,10 @@ function App() {
             <a href="https://github.com/jeremyfee/cosmwasm-chess-ui">
               https://github.com/jeremyfee/cosmwasm-chess-ui
             </a>
-            <br />
-            <code
-              className="juno-address"
-              onClick={() => onAddressClick("juno-address")}
-            >
-              juno1qzmu3y33vhwhexwwtctp7e3fn20qnfphy3f04w
-            </code>
+          </p>
+          <p>
+            Created by:{" "}
+            <Address address="juno1qzmu3y33vhwhexwwtctp7e3fn20qnfphy3f04w" />
           </p>
         </small>
       </footer>

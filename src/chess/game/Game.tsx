@@ -2,6 +2,7 @@ import { StdFee } from "@cosmjs/amino";
 import { Chess, ChessInstance, Move } from "chess.js";
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router";
+import { Address } from "../../Address";
 
 import {
   CosmWasmChess,
@@ -30,9 +31,8 @@ export function Game() {
   const contract = useOutletContext<CosmWasmChess>();
   const { game_id } = useParams();
 
+  const address = contract.address;
   const [state, setState] = useState<{
-    // connected wallet address
-    address?: string;
     // chess.js game
     chess?: ChessInstance;
     // whether draw was offered on last move
@@ -88,19 +88,11 @@ export function Game() {
     };
   }
 
-  function formatAddress(address?: string) {
-    if (contract.address && contract.address === address) {
-      return "You";
-    } else {
-      return address;
-    }
-  }
-
   function formatHistory(history: Move[]) {
     const num_moves = Math.ceil(history.length / 2);
     const move_numbers = Array.from(Array(num_moves).keys());
     return (
-      <ol>
+      <ol className="history">
         {move_numbers.map((move) => {
           const index = move * 2;
           const white = history[index];
@@ -113,6 +105,29 @@ export function Game() {
           );
         })}
       </ol>
+    );
+  }
+
+  function formatPlayers(game: ChessGame) {
+    return (
+      <dl className="players">
+        <dt>White</dt>
+        <dd>
+          {game.player1 === address ? (
+            "you"
+          ) : (
+            <Address address={game.player1} />
+          )}
+        </dd>
+        <dt>Black</dt>
+        <dd>
+          {game.player2 === address ? (
+            "you"
+          ) : (
+            <Address address={game.player2} />
+          )}
+        </dd>
+      </dl>
     );
   }
 
@@ -218,7 +233,7 @@ export function Game() {
 
   function updateGame(): void {
     setState((state) => {
-      const { address, chess, game } = state;
+      const { chess, game } = state;
       if (!chess || !game) {
         return state;
       }
@@ -327,12 +342,7 @@ export function Game() {
 
       <div className="controls">
         <h3>Details</h3>
-        <dl>
-          <dt>White</dt>
-          <dd>{formatAddress(state.game?.player1)}</dd>
-          <dt>Black</dt>
-          <dd>{formatAddress(state.game?.player2)}</dd>
-        </dl>
+        {state.game ? formatPlayers(state.game) : <></>}
 
         <h4>Moves</h4>
         {state.history ? formatHistory(state.history) : <></>}

@@ -1,18 +1,27 @@
+import { useOutletContext } from "react-router";
 import { Link } from "react-router-dom";
-import { ChessGameSummary, formatGameSummaryStatus } from "../CosmWasmChess";
+import { Address } from "../../Address";
+import {
+  ChessGameSummary,
+  CosmWasmChess,
+  formatGameSummaryStatus,
+} from "../CosmWasmChess";
 import "./GameSummary.css";
 
 export interface GameSummaryProps {
-  address?: string;
   game: ChessGameSummary;
-  formatAddress: (address?: string) => string | undefined;
 }
 
 export function GameSummary(props: GameSummaryProps) {
-  const { address, game: g, formatAddress } = props;
+  const { game: g } = props;
+  const contract = useOutletContext<CosmWasmChess>();
+  const address = contract.address;
 
   return (
-    <section className={"gameSummary" + (g.status ? "gameover" : "")}>
+    <Link
+      className={"gameSummary" + (g.status ? "gameover" : "")}
+      to={`/games/${g.game_id}`}
+    >
       <div className="players">
         <p className="game_id">
           <strong>#{g.game_id}</strong>
@@ -20,19 +29,21 @@ export function GameSummary(props: GameSummaryProps) {
         <p className="player1">
           <small>White</small>
           <br />
-          <span className="player">{formatAddress(g.player1)}</span>
+          <span className="player">
+            {address === g.player1 ? "you" : <Address address={g.player1} />}
+          </span>
         </p>
         <p className="opponent">
           <small>Black</small>
           <br />
-          <span className="player">{formatAddress(g.player2)}</span>
+          <span className="player">
+            {address === g.player2 ? "you" : <Address address={g.player2} />}
+          </span>
         </p>
       </div>
 
       <div className="actions">
-        <Link to={`/games/${g.game_id}`}>
-          {formatGameSummaryStatus(g.status, g.turn_color)}
-        </Link>
+        {formatGameSummaryStatus(g.status, g.turn_color)}
         {g.status
           ? ""
           : (address === g.player1 && g.turn_color === "white") ||
@@ -40,6 +51,6 @@ export function GameSummary(props: GameSummaryProps) {
           ? "(Your Move)"
           : ""}
       </div>
-    </section>
+    </Link>
   );
 }

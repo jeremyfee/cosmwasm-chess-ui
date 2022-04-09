@@ -23,15 +23,7 @@ export function Challenges() {
 
   useEffect(() => {
     loadChallenges();
-  }, [contract.address]);
-
-  function formatAddress(address?: string): string | undefined {
-    if (contract.address && contract.address === address) {
-      return "You";
-    } else {
-      return address;
-    }
-  }
+  }, []); // no filtering based on address yet [contract.address]);
 
   async function loadChallenges(): Promise<void> {
     setState({ ...state, status: "Loading challenges" });
@@ -116,7 +108,6 @@ export function Challenges() {
             state.challenges.map((c) => (
               <ChallengeSummary
                 challenge={c}
-                formatAddress={formatAddress}
                 key={c.challenge_id}
                 onAcceptChallenge={onAcceptChallenge}
                 onCancelChallenge={onCancelChallenge}

@@ -5,6 +5,12 @@
   border-radius: 0.5em;
   display: flex;
   padding: 0.5em;
+  text-decoration: none;
+}
+
+.gameSummary:hover {
+  border-color: #aaa;
+  background-color: #f9f9f9;
 }
 
 .gameSummary + .gameSummary {

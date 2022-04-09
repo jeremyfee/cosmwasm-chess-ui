@@ -1,11 +1,13 @@
+import { Address } from "../Address";
 import { CosmWasm } from "./useCosmWasm";
+import "./Profile.css";
 
 export interface ProfileProps {
   cosmWasm: CosmWasm;
 }
 
 export function Profile(props: ProfileProps) {
-  const { address, formatAddress, connect, disconnect } = props.cosmWasm;
+  const { address, connect, disconnect } = props.cosmWasm;
 
   return (
     <div className="profile">
@@ -13,7 +15,9 @@ export function Profile(props: ProfileProps) {
         <>
           <button onClick={disconnect}>Disconnect Keplr</button>
           <br />
-          <small>{formatAddress(address)}</small>
+          <small>
+            <Address address={address} />
+          </small>
         </>
       ) : (
         <>
