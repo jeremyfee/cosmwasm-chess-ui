@@ -145,6 +145,7 @@ export function Game() {
             chess: parseGame(game),
             fee: estimateFee(game),
             game,
+            pendingMove: undefined,
             status: undefined,
           };
         });
