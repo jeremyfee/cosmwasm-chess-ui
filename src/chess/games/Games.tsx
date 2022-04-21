@@ -17,28 +17,17 @@ export function Games() {
     loadGames();
   }, []); // no filtering based on address yet [contract.address]);
 
+  // sort player games first when connected
+  useEffect(() => {
+    updateGames();
+  }, [contract.address]);
+
   async function loadGames(): Promise<void> {
     setState({ ...state, status: "Loading games" });
     return contract
       .getGames({
         // worry about filtering once there are too many games
         /* player: contract.address */
-      })
-      .then((games: ChessGameSummary[]) => {
-        // sort player games first, then by game id desc (newer first)
-        const address = contract.address || "none";
-        games.sort((a, b) => {
-          const in_a = address === a.player1 || address === a.player2;
-          const in_b = address === b.player1 || address === b.player2;
-          if (in_a && !in_b) {
-            return -1;
-          } else if (!in_a && in_b) {
-            return 1;
-          } else {
-            return a.game_id > b.game_id ? -1 : 1;
-          }
-        });
-        return games;
       })
       .then((games: ChessGameSummary[]) => {
         setState((state) => {
@@ -55,10 +44,36 @@ export function Games() {
         });
       })
       .catch((error: any) => {
-        setState((stat) => {
+        setState((state) => {
           return { ...state, error, status: undefined };
         });
+      })
+      .then(updateGames);
+  }
+
+  async function updateGames(): Promise<void> {
+    setState((state) => {
+      if (!state.games) {
+        return state;
+      }
+
+      const games = state.games.slice();
+      // sort player games first, then by game id desc (newer first)
+      const address = contract.address || "none";
+      games.sort((a, b) => {
+        const in_a = address === a.player1 || address === a.player2;
+        const in_b = address === b.player1 || address === b.player2;
+        if (in_a && !in_b) {
+          return -1;
+        } else if (!in_a && in_b) {
+          return 1;
+        } else {
+          return a.game_id > b.game_id ? -1 : 1;
+        }
       });
+
+      return { ...state, games };
+    });
   }
 
   return (
