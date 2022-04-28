@@ -17,7 +17,7 @@ export function Games() {
     if (contract.address || contract.client) {
       loadGames();
     }
-  }, [contract.address, contract.client]); // no filtering based on address yet [contract.address]);
+  }, [contract.address, contract.client]);
 
   // sort player games first when connected
   useEffect(() => {

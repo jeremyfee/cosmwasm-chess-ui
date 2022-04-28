@@ -23,7 +23,7 @@ export function Challenges() {
 
   useEffect(() => {
     loadChallenges();
-  }, []); // no filtering based on address yet [contract.address]);
+  }, [contract.address, contract.client]);
 
   async function loadChallenges(): Promise<void> {
     setState({ ...state, status: "Loading challenges" });
@@ -33,8 +33,8 @@ export function Challenges() {
         // sort player challenges first, then by game id desc (newer first)
         const address = contract.address || "none";
         challenges.sort((a, b) => {
-          const in_a = address in [a.created_by, a.opponent];
-          const in_b = address in [b.created_by, b.opponent];
+          const in_a = address === a.created_by || address === a.opponent;
+          const in_b = address === b.created_by || address === b.opponent;
           if (in_a && !in_b) {
             return -1;
           } else if (!in_a && in_b) {

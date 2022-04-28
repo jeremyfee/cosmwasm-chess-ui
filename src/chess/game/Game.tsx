@@ -14,17 +14,29 @@ import {
 import { ChessBoard, MoveList } from "../chessboard";
 import "./Game.css";
 
-function parseGame(game: ChessGame): ChessInstance {
-  const chess = new Chess();
-  game.moves.forEach((move) => {
-    const action = move[1];
-    if (isMakeMove(action)) {
-      chess.move(action.move);
-    } else if (isOfferDraw(action)) {
-      chess.move(action.offer_draw);
-    }
-  });
-  return chess;
+export interface GameState {
+  // chess.js game
+  chess?: ChessInstance;
+  // whether draw was offered on last move
+  drawOffered?: boolean;
+  // error loading game
+  error?: unknown;
+  // estimated gas fee
+  fee?: number | StdFee | "auto";
+  // game from contract
+  game?: ChessGame;
+  // game history
+  history?: Move[];
+  // whether player can interact with board
+  interactive?: boolean;
+  // board orientation
+  orientation?: "w" | "b";
+  // move that is not yet submitted
+  pendingMove?: Move;
+  // current status, loading, game over, etc
+  status?: string;
+  // next turn
+  turn?: "w" | "b";
 }
 
 export function Game() {
@@ -32,30 +44,7 @@ export function Game() {
   const { game_id } = useParams();
 
   const address = contract.address;
-  const [state, setState] = useState<{
-    // chess.js game
-    chess?: ChessInstance;
-    // whether draw was offered on last move
-    drawOffered?: boolean;
-    // error loading game
-    error?: unknown;
-    // estimated gas fee
-    fee?: number | StdFee | "auto";
-    // game from contract
-    game?: ChessGame;
-    // game history
-    history?: Move[];
-    // whether player can interact with board
-    interactive?: boolean;
-    // board orientation
-    orientation?: "w" | "b";
-    // move that is not yet submitted
-    pendingMove?: Move;
-    // current status, loading, game over, etc
-    status?: string;
-    // next turn
-    turn?: "w" | "b";
-  }>({});
+  const [state, setState] = useState<GameState>({});
 
   // update board/controls when address changes
   useEffect(() => {
@@ -68,7 +57,7 @@ export function Game() {
   // load the game
   useEffect(() => {
     loadGame();
-  }, [game_id]);
+  }, [contract.address, contract.client, game_id]);
 
   function estimateFee(game: ChessGame): number | StdFee | "auto" {
     let gas = "200000";
@@ -198,6 +187,19 @@ export function Game() {
       .resign(+game_id, state.fee)
       .then(loadGame)
       .catch(setError);
+  }
+
+  function parseGame(game: ChessGame): ChessInstance {
+    const chess = new Chess();
+    game.moves.forEach((move) => {
+      const action = move[1];
+      if (isMakeMove(action)) {
+        chess.move(action.move);
+      } else if (isOfferDraw(action)) {
+        chess.move(action.offer_draw);
+      }
+    });
+    return chess;
   }
 
   function setError(error: any) {
