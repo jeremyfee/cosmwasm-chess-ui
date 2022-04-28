@@ -14,8 +14,10 @@ export function Games() {
   }>({});
 
   useEffect(() => {
-    loadGames();
-  }, []); // no filtering based on address yet [contract.address]);
+    if (contract.address || contract.client) {
+      loadGames();
+    }
+  }, [contract.address, contract.client]); // no filtering based on address yet [contract.address]);
 
   // sort player games first when connected
   useEffect(() => {

@@ -1,32 +1,26 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { OfflineSigner } from "@cosmjs/proto-signing";
-import { ChainInfo, Keplr } from "@keplr-wallet/types";
 import {
   CosmWasmClient,
   ExecuteResult,
   SigningCosmWasmClient,
 } from "@cosmjs/cosmwasm-stargate";
+import { ChainInfo, Window as KeplrWindow } from "@keplr-wallet/types";
 
-// extend window with CosmJS and Keplr properties
-interface KeplrWindow extends Window {
-  keplr: Keplr;
-  getOfflineSigner(chainId: string): Promise<OfflineSigner>;
+declare global {
+  interface Window extends KeplrWindow {}
 }
-
-declare let window: KeplrWindow;
 
 export interface CosmWasmState {
   address?: string;
   client?: CosmWasmClient;
-  initialized?: boolean;
+  error?: Error;
   signingClient?: SigningCosmWasmClient;
 }
 
 export interface CosmWasm extends CosmWasmState {
-  chainInfo: ChainInfo;
   connect: () => Promise<void>;
-  disconnect: () => void;
+  disconnect: () => Promise<void>;
   execute: (
     contractAddress: string,
     msg: Record<string, unknown>,
@@ -34,7 +28,6 @@ export interface CosmWasm extends CosmWasmState {
     memo?: string | undefined,
     funds?: readonly Coin[] | undefined
   ) => Promise<ExecuteResult>;
-  formatAddress: (address?: string) => string;
   queryContractSmart: (
     contractAddress: string,
     queryMsg: Record<string, unknown>
@@ -47,61 +40,41 @@ export function useCosmWasm(
 ): CosmWasm {
   const ALREADY_CONNECTED_KEY = `connected_${chainInfo.chainId}`;
 
-  const client = useRef<CosmWasmClient | undefined>();
-  const signingClient = useRef<SigningCosmWasmClient | undefined>();
-
   const [state, setState] = useState<CosmWasmState>({});
+  const [addressChanges, setAddressChanges] = useState(0);
 
   useEffect(() => {
+    window.addEventListener("keplr_keystorechange", onAddressChange);
+
     (async () => {
-      await initialize();
-      if (localStorage.getItem(chainInfo.chainId)) {
-        await connect();
+      if (localStorage.getItem(ALREADY_CONNECTED_KEY)) {
+        await connectSigningClient();
+      } else {
+        await connectQueryClient();
       }
     })();
-  }, [chainInfo]);
 
-  async function initialize(): Promise<void> {
-    if (!window.keplr || !window.getOfflineSigner) {
-      throw new Error("Keplr extension not installed");
-    }
-    if (!window.keplr.experimentalSuggestChain) {
-      throw new Error("Old version of keplr");
-    }
-    await window.keplr.experimentalSuggestChain(chainInfo);
-    await window.keplr.enable(chainInfo.chainId);
-    // connect query client automatically
-    client.current = await CosmWasmClient.connect(chainInfo.rpc);
-    setState((state) => {
-      return { ...state, client: client.current, initialized: true };
-    });
+    return () => {
+      window.removeEventListener("keplr_keystorechange", onAddressChange);
+    };
+  }, [chainInfo, addressChanges]);
+
+  return {
+    ...state,
+    connect,
+    disconnect,
+    execute,
+    queryContractSmart,
+  };
+
+  async function connect() {
+    return connectSigningClient();
   }
 
-  async function connect(): Promise<void> {
-    if (!state.initialized) {
-      await initialize();
+  async function disconnect() {
+    if (state.signingClient) {
+      state.signingClient.disconnect();
     }
-    const offlineSigner = await window.getOfflineSigner(chainInfo.chainId);
-    signingClient.current = await SigningCosmWasmClient.connectWithSigner(
-      chainInfo.rpc,
-      offlineSigner
-    );
-    const accounts = await offlineSigner.getAccounts();
-    setState((state) => {
-      return {
-        ...state,
-        address: accounts[0].address,
-        signingClient: signingClient.current,
-      };
-    });
-    localStorage.setItem(chainInfo.chainId, "true");
-  }
-
-  function disconnect(): void {
-    if (signingClient.current) {
-      signingClient.current.disconnect();
-    }
-    localStorage.removeItem(chainInfo.chainId);
     setState((state) => {
       return {
         ...state,
@@ -111,6 +84,56 @@ export function useCosmWasm(
     });
   }
 
+  async function connectSigningClient() {
+    return Promise.resolve()
+      .then(async () => {
+        if (
+          !window.keplr ||
+          !window.getOfflineSigner ||
+          !window.keplr.experimentalSuggestChain
+        ) {
+          throw new Error("Keplr not installed");
+        }
+        await window.keplr.experimentalSuggestChain(chainInfo);
+        await window.keplr.enable(chainInfo.chainId);
+        const offlineSigner = await window.getOfflineSigner(chainInfo.chainId);
+        const signingClient = await SigningCosmWasmClient.connectWithSigner(
+          chainInfo.rpc,
+          offlineSigner
+        );
+        const accounts = await offlineSigner.getAccounts();
+        setState((state) => {
+          return {
+            ...state,
+            address: accounts[0].address,
+            error: undefined,
+            signingClient,
+          };
+        });
+        localStorage.setItem(ALREADY_CONNECTED_KEY, "true");
+      })
+      .catch((error) => {
+        setState((state) => {
+          return { ...state, error };
+        });
+      });
+  }
+
+  async function connectQueryClient() {
+    return Promise.resolve()
+      .then(async () => {
+        const client = await CosmWasmClient.connect(chainInfo.rpc);
+        setState((state) => {
+          return { ...state, client };
+        });
+      })
+      .catch((error) => {
+        setState((state) => {
+          return { ...state, error };
+        });
+      });
+  }
+
   async function execute(
     contractAddress: string,
     msg: Record<string, unknown>,
@@ -118,13 +141,13 @@ export function useCosmWasm(
     memo?: string | undefined,
     funds?: readonly Coin[] | undefined
   ): Promise<ExecuteResult> {
-    if (!state.address || !signingClient.current) {
-      await connect();
+    if (!state.address || !state.signingClient) {
+      await connectSigningClient();
+      if (!state.address || !state.signingClient) {
+        return Promise.reject(new Error("Wallet not connected"));
+      }
     }
-    if (!state.address || !signingClient.current) {
-      throw new Error("unable to connect");
-    }
-    return signingClient.current.execute(
+    return state.signingClient.execute(
       state.address,
       contractAddress,
       msg,
@@ -134,38 +157,22 @@ export function useCosmWasm(
     );
   }
 
-  function formatAddress(address?: string, empty: string = "-"): string {
-    if (!address) {
-      return empty;
-    } else {
-      const prefix = chainInfo.bech32Config.bech32PrefixAccAddr.length;
-      return `${address.substring(0, 5 + prefix)}...${address.substring(
-        address.length - 5
-      )}`;
-    }
+  function onAddressChange() {
+    setAddressChanges(addressChanges + 1);
   }
 
   async function queryContractSmart(
     contractAddress: string,
     queryMsg: Record<string, unknown>
   ): Promise<any> {
-    if (!client.current) {
-      await initialize();
+    let client = state.signingClient || state.client;
+    if (!client) {
+      await connectQueryClient();
+      client = state.client;
+      if (!client) {
+        return Promise.reject("Unable to query");
+      }
     }
-    if (!client.current) {
-      // initialize should set client
-      throw new Error("initialize failed");
-    }
-    return client.current.queryContractSmart(contractAddress, queryMsg);
+    return client?.queryContractSmart(contractAddress, queryMsg);
   }
-
-  return {
-    ...state,
-    chainInfo,
-    connect,
-    disconnect,
-    execute,
-    formatAddress,
-    queryContractSmart,
-  };
 }

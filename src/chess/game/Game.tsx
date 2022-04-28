@@ -11,7 +11,7 @@ import {
   isOfferDraw,
   formatGameSummaryStatus,
 } from "../CosmWasmChess";
-import { ChessBoard } from "./ChessBoard";
+import { ChessBoard, MoveList } from "../chessboard";
 import "./Game.css";
 
 function parseGame(game: ChessGame): ChessInstance {
@@ -86,26 +86,6 @@ export function Game() {
       amount: [],
       gas,
     };
-  }
-
-  function formatHistory(history: Move[]) {
-    const num_moves = Math.ceil(history.length / 2);
-    const move_numbers = Array.from(Array(num_moves).keys());
-    return (
-      <ol className="history">
-        {move_numbers.map((move) => {
-          const index = move * 2;
-          const white = history[index];
-          const black =
-            history.length > index + 1 ? history[index + 1] : undefined;
-          return (
-            <li>
-              {white.san} {black ? black.san : ""}
-            </li>
-          );
-        })}
-      </ol>
-    );
   }
 
   function formatPlayers(game: ChessGame) {
@@ -346,7 +326,7 @@ export function Game() {
         {state.game ? formatPlayers(state.game) : <></>}
 
         <h4>Moves</h4>
-        {state.history ? formatHistory(state.history) : <></>}
+        {state.history ? <MoveList moves={state.history} /> : <></>}
       </div>
     </div>
   );

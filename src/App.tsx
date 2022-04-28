@@ -1,4 +1,3 @@
-import "./App.css";
 import { NavLink, Outlet } from "react-router-dom";
 
 import { Profile } from "./chess/Profile";
@@ -8,6 +7,8 @@ import { useCosmWasm } from "./chess/useCosmWasm";
 // import { CHAIN_INFO, CONTRACT } from "./config/testnet";
 import { CHAIN_INFO, CONTRACT } from "./config/juno";
 import { Address } from "./Address";
+
+import "./App.css";
 
 function App() {
   const cosmWasm = useCosmWasm(CHAIN_INFO);

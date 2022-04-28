@@ -1,7 +1,7 @@
-import "./ChessBoard.css";
-import { ChessInstance, Move, Square } from "chess.js";
 import { useState } from "react";
+import { ChessInstance, Move, Square } from "chess.js";
 import { ChessPiece } from "./ChessPiece";
+import "./ChessBoard.css";
 
 export interface ChessBoardProps {
   chess: ChessInstance;

@@ -122,7 +122,7 @@ export class CosmWasmChess {
     player?: string;
   }): Promise<Challenge[]> {
     return this.client.queryContractSmart(this.contract, {
-      get_challenges: { player: player },
+      get_challenges: { after, player: player },
     });
   }
 
