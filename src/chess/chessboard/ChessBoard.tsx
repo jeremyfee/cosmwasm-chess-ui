@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChessInstance, Move, Square } from "chess.js";
-import { ChessPiece } from "./ChessPiece";
+import { ChessPieceSvg as ChessPiece } from "./ChessPieceSvg";
 import "./ChessBoard.css";
 
 export interface ChessBoardProps {
@@ -93,6 +93,35 @@ export function ChessBoard(props: ChessBoardProps) {
     squares = props.chess.SQUARES.slice().reverse();
   }
 
+  /**
+   * Render a board square.
+   *
+   * At left and right edges of board, also add row label.
+   * Separate function for key.
+   */
+  function BoardSquare({ square, index }: { square: Square; index: number }) {
+    const row = square.charAt(1);
+    return (
+      <>
+        {index % 8 == 0 ? (
+          <div className="row left" key={`row-left-${row}`}>
+            {row}
+          </div>
+        ) : (
+          ""
+        )}
+        {getSquare(square)}
+        {index % 8 == 7 ? (
+          <div className="row right" key={`row-right-${row}`}>
+            {row}
+          </div>
+        ) : (
+          ""
+        )}
+      </>
+    );
+  }
+
   return (
     <section className="ChessBoard">
       {/* top column labels */}
@@ -108,28 +137,9 @@ export function ChessBoard(props: ChessBoardProps) {
       <div className="empty" key="top-right"></div>
 
       {/* grid and row labels */}
-      {squares.map((square, index) => {
-        const row = square.charAt(1);
-        return (
-          <>
-            {index % 8 == 0 ? (
-              <div className="row left" key={`row-left-${row}`}>
-                {row}
-              </div>
-            ) : (
-              ""
-            )}
-            {getSquare(square)}
-            {index % 8 == 7 ? (
-              <div className="row right" key={`row-right-${row}`}>
-                {row}
-              </div>
-            ) : (
-              ""
-            )}
-          </>
-        );
-      })}
+      {squares.map((square, index) => (
+        <BoardSquare key={square} square={square} index={index} />
+      ))}
 
       {/* bottom column labels */}
       <div className="empty" key="bottom-left"></div>
