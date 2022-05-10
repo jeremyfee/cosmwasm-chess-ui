@@ -1,6 +1,7 @@
 import { useOutletContext } from "react-router";
 import { Address } from "../../Address";
 import { Challenge, CosmWasmChess } from "../CosmWasmChess";
+import { formatBlockTime } from "../formatBlockTime";
 import "./ChallengeSummary.css";
 
 export interface ChallengeElProps {
@@ -58,6 +59,15 @@ export function ChallengeSummary(props: ChallengeElProps) {
             )}
           </span>
         </p>
+        {c.block_limit ? (
+          <p className="block_limit">
+            <small>Block Limit</small>
+            <br />
+            <span className="player">{formatBlockTime(c.block_limit)}</span>
+          </p>
+        ) : (
+          ""
+        )}
       </div>
 
       <div className="actions">

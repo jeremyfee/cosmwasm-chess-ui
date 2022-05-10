@@ -46,3 +46,11 @@
   background-color: #eee;
   font-style: italic;
 }
+
+.turnwhite .player1 {
+  font-weight: bold;
+}
+
+.turnblack .player2 {
+  font-weight: bold;
+}

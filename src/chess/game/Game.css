@@ -8,6 +8,10 @@
   flex: 1;
 }
 
+.game-wrapper .summary dd + dt {
+  margin-top: 0.5em;
+}
+
 @media screen and (min-width: 540px) {
   .game-wrapper {
     display: flex;

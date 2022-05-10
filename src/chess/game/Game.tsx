@@ -13,6 +13,7 @@ import {
 } from "../CosmWasmChess";
 import { ChessBoard, MoveList } from "../chessboard";
 import "./Game.css";
+import { formatBlockTime } from "../formatBlockTime";
 
 export interface GameState {
   // chess.js game
@@ -77,9 +78,9 @@ export function Game() {
     };
   }
 
-  function formatPlayers(game: ChessGame) {
+  function formatSummary(game: ChessGame) {
     return (
-      <dl className="players">
+      <dl className="summary">
         <dt>White</dt>
         <dd>
           {game.player1 === address ? (
@@ -96,6 +97,8 @@ export function Game() {
             <Address address={game.player2} />
           )}
         </dd>
+        <dt>Block Limit</dt>
+        <dd>{formatBlockTime(game.block_limit)}</dd>
       </dl>
     );
   }
@@ -325,10 +328,14 @@ export function Game() {
 
       <div className="controls">
         <h3>Details</h3>
-        {state.game ? formatPlayers(state.game) : <></>}
+        {state.game ? formatSummary(state.game) : <></>}
 
         <h4>Moves</h4>
-        {state.history ? <MoveList moves={state.history} /> : <></>}
+        {state.history?.length ? (
+          <MoveList moves={state.history} />
+        ) : (
+          "no moves yet"
+        )}
       </div>
     </div>
   );

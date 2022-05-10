@@ -6,6 +6,7 @@ import {
   CosmWasmChess,
   formatGameSummaryStatus,
 } from "../CosmWasmChess";
+import { formatBlockTime } from "../formatBlockTime";
 import "./GameSummary.css";
 
 export interface GameSummaryProps {
@@ -17,14 +18,23 @@ export function GameSummary(props: GameSummaryProps) {
   const contract = useOutletContext<CosmWasmChess>();
   const address = contract.address;
 
+  const yourMove = g.status
+    ? ""
+    : (address === g.player1 && g.turn_color === "white") ||
+      (address === g.player2 && g.turn_color === "black")
+    ? "(Your Move)"
+    : "";
+
   return (
     <Link
-      className={"gameSummary" + (g.status ? "gameover" : "")}
+      className={
+        "gameSummary turn" + g.turn_color + (g.status ? " gameover" : "")
+      }
       to={`/games/${g.game_id}`}
     >
       <div className="players">
         <p className="game_id">
-          <strong>#{g.game_id}</strong>
+          <strong>#{g.game_id}</strong> {yourMove}
         </p>
         <p className="player1">
           <small>White</small>
@@ -33,23 +43,27 @@ export function GameSummary(props: GameSummaryProps) {
             {address === g.player1 ? "you" : <Address address={g.player1} />}
           </span>
         </p>
-        <p className="opponent">
+        <p className="player2">
           <small>Black</small>
           <br />
           <span className="player">
             {address === g.player2 ? "you" : <Address address={g.player2} />}
           </span>
         </p>
+        {g.block_limit ? (
+          <p className="block_limit">
+            <small>Block Limit</small>
+            <br />
+            <span className="player">{formatBlockTime(g.block_limit)}</span>
+          </p>
+        ) : (
+          ""
+        )}
       </div>
 
       <div className="actions">
         {formatGameSummaryStatus(g.status, g.turn_color)}
-        {g.status
-          ? ""
-          : (address === g.player1 && g.turn_color === "white") ||
-            (address === g.player2 && g.turn_color === "black")
-          ? "(Your Move)"
-          : ""}
+        {yourMove}
       </div>
     </Link>
   );

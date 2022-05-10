@@ -78,6 +78,13 @@ export function Games() {
     });
   }
 
+  const playerGames = (state.games ?? []).filter(
+    (g) => g.player1 === contract.address || g.player2 === contract.address
+  );
+  const otherGames = (state.games ?? []).filter(
+    (g) => g.player1 !== contract.address && g.player2 !== contract.address
+  );
+
   return (
     <div className="games-wrapper">
       <div className="games">
@@ -85,10 +92,24 @@ export function Games() {
         {state.error ? <p className="error">{`${state.error}`}</p> : <></>}
         {state.status ? <p className="status">{state.status}</p> : <></>}
 
-        {state.games && state.games.length > 0 ? (
-          state.games.map((game) => (
-            <GameSummary game={game} key={game.game_id} />
-          ))
+        {playerGames.length > 0 ? (
+          <>
+            <h3>Your Games</h3>
+            {playerGames.map((game) => (
+              <GameSummary game={game} key={game.game_id} />
+            ))}
+          </>
+        ) : (
+          <></>
+        )}
+
+        {otherGames.length > 0 ? (
+          <>
+            {playerGames.length > 0 ? <h3>Other Games</h3> : ""}
+            {otherGames.map((game) => (
+              <GameSummary game={game} key={game.game_id} />
+            ))}
+          </>
         ) : (
           <></>
         )}
