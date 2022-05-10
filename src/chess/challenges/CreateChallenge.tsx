@@ -22,11 +22,11 @@ export function CreateChallenge(props: CreateChallengeProps) {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     props.onCreateChallenge({
-      block_limit: state.block_limit || undefined,
+      block_limit: state.block_limit ? +state.block_limit : undefined,
       opponent: state.opponent || undefined,
       play_as: state.play_as || undefined,
     });
-    setState((state) => {
+    setState((_state) => {
       return {};
     });
   };
@@ -62,11 +62,12 @@ export function CreateChallenge(props: CreateChallengeProps) {
       </label>
       <input
         id="create_challenge_block_limit"
+        min="0"
         name="block_limit"
         onChange={onChange}
-        type="number"
-        min="0"
         placeholder="optional"
+        step="1"
+        type="number"
         value={state.block_limit}
       />
 
