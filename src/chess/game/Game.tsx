@@ -100,14 +100,12 @@ export function Game() {
         <dt>Block Limit</dt>
         <dd>
           {formatBlockTime(game.block_limit)}
-          {game.block_limit ? (
+          {!game.status && (game.block_limit || game.block_limit === 0) ? (
             <>
               {" "}
               <button
                 className="declareTimeout"
                 disabled={
-                  // game is over
-                  !!game.status ||
                   // game is not started
                   game.moves.length === 0 ||
                   // current user is not player

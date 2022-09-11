@@ -196,7 +196,7 @@ export function Games() {
           <input
             type="checkbox"
             checked={state.player_only}
-            disabled={state.loading}
+            disabled={state.loading || !contract.address}
             onChange={togglePlayerOnly}
           />
           Only Your Games
