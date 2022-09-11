@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Coin, StdFee } from "@cosmjs/amino";
 import {
   CosmWasmClient,
@@ -13,14 +13,12 @@ declare global {
 
 export interface CosmWasmState {
   address?: string;
-  client?: CosmWasmClient;
   error?: Error;
-  signingClient?: SigningCosmWasmClient;
 }
 
 export interface CosmWasm extends CosmWasmState {
-  connect: () => Promise<void>;
-  disconnect: () => Promise<void>;
+  connect: () => void;
+  disconnect: () => void;
   execute: (
     contractAddress: string,
     msg: Record<string, unknown>,
@@ -39,25 +37,21 @@ export function useCosmWasm(
   defaultFee: number | StdFee | "auto" = { amount: [], gas: "200000" }
 ): CosmWasm {
   const ALREADY_CONNECTED_KEY = `connected_${chainInfo.chainId}`;
-
+  const queryClient = useRef<CosmWasmClient | undefined>(undefined);
+  const signingClient = useRef<SigningCosmWasmClient | undefined>(undefined);
   const [state, setState] = useState<CosmWasmState>({});
-  const [addressChanges, setAddressChanges] = useState(0);
 
   useEffect(() => {
-    window.addEventListener("keplr_keystorechange", onAddressChange);
-
-    (async () => {
-      if (localStorage.getItem(ALREADY_CONNECTED_KEY)) {
-        await connectSigningClient();
-      } else {
-        await connectQueryClient();
-      }
-    })();
-
+    // connect if previously connected
+    if (localStorage.getItem(ALREADY_CONNECTED_KEY)) {
+      connect();
+    }
+    // listen for address changes
+    window.addEventListener("keplr_keystorechange", connect);
     return () => {
-      window.removeEventListener("keplr_keystorechange", onAddressChange);
+      window.removeEventListener("keplr_keystorechange", connect);
     };
-  }, [chainInfo, addressChanges]);
+  }, [chainInfo]);
 
   return {
     ...state,
@@ -67,24 +61,29 @@ export function useCosmWasm(
     queryContractSmart,
   };
 
-  async function connect() {
-    return connectSigningClient();
+  function connect() {
+    (async () => {
+      await connectSigningClient();
+    })();
   }
 
-  async function disconnect() {
-    if (state.signingClient) {
-      state.signingClient.disconnect();
+  function disconnect() {
+    if (signingClient.current) {
+      signingClient.current.disconnect();
+      signingClient.current = undefined;
+      localStorage.removeItem(ALREADY_CONNECTED_KEY);
     }
     setState((state) => {
       return {
         ...state,
         address: undefined,
-        signingClient: undefined,
       };
     });
   }
 
-  async function connectSigningClient() {
+  async function connectSigningClient(): Promise<
+    SigningCosmWasmClient | undefined
+  > {
     return Promise.resolve()
       .then(async () => {
         if (
@@ -97,40 +96,27 @@ export function useCosmWasm(
         await window.keplr.experimentalSuggestChain(chainInfo);
         await window.keplr.enable(chainInfo.chainId);
         const offlineSigner = await window.getOfflineSigner(chainInfo.chainId);
-        const signingClient = await SigningCosmWasmClient.connectWithSigner(
+        const accounts = await offlineSigner.getAccounts();
+        const client = await SigningCosmWasmClient.connectWithSigner(
           chainInfo.rpc,
           offlineSigner
         );
-        const accounts = await offlineSigner.getAccounts();
+        signingClient.current = client;
         setState((state) => {
           return {
             ...state,
             address: accounts[0].address,
             error: undefined,
-            signingClient,
           };
         });
         localStorage.setItem(ALREADY_CONNECTED_KEY, "true");
+        return client;
       })
       .catch((error) => {
         setState((state) => {
           return { ...state, error };
         });
-      });
-  }
-
-  async function connectQueryClient() {
-    return Promise.resolve()
-      .then(async () => {
-        const client = await CosmWasmClient.connect(chainInfo.rpc);
-        setState((state) => {
-          return { ...state, client };
-        });
-      })
-      .catch((error) => {
-        setState((state) => {
-          return { ...state, error };
-        });
+        return undefined;
       });
   }
 
@@ -141,13 +127,13 @@ export function useCosmWasm(
     memo?: string | undefined,
     funds?: readonly Coin[] | undefined
   ): Promise<ExecuteResult> {
-    if (!state.address || !state.signingClient) {
+    if (!state.address || !signingClient.current) {
       await connectSigningClient();
-      if (!state.address || !state.signingClient) {
-        return Promise.reject(new Error("Wallet not connected"));
+      if (!state.address || !signingClient.current) {
+        return Promise.reject(new Error("Unable to execute"));
       }
     }
-    return state.signingClient.execute(
+    return signingClient.current.execute(
       state.address,
       contractAddress,
       msg,
@@ -157,22 +143,15 @@ export function useCosmWasm(
     );
   }
 
-  function onAddressChange() {
-    setAddressChanges(addressChanges + 1);
-  }
-
   async function queryContractSmart(
     contractAddress: string,
     queryMsg: Record<string, unknown>
   ): Promise<any> {
-    let client = state.signingClient || state.client;
+    let client = signingClient.current || queryClient.current;
     if (!client) {
-      await connectQueryClient();
-      client = state.client;
-      if (!client) {
-        return Promise.reject("Unable to query");
-      }
+      client = await CosmWasmClient.connect(chainInfo.rpc);
+      queryClient.current = client;
     }
-    return client?.queryContractSmart(contractAddress, queryMsg);
+    return client.queryContractSmart(contractAddress, queryMsg);
   }
 }
