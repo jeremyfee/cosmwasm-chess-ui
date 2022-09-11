@@ -1,5 +1,5 @@
-import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
+import { StrictMode } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import App from "./App";
@@ -8,8 +8,9 @@ import { Game } from "./chess/game/Game";
 import { Games } from "./chess/games/Games";
 import "./index.css";
 
-ReactDOM.render(
-  <React.StrictMode>
+const root = createRoot(document.getElementById("root")!);
+root.render(
+  <StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />}>
@@ -22,6 +23,5 @@ ReactDOM.render(
         </Route>
       </Routes>
     </BrowserRouter>
-  </React.StrictMode>,
-  document.getElementById("root")
+  </StrictMode>
 );
