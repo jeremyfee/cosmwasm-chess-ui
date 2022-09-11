@@ -17,13 +17,20 @@
     "@cosmjs/cosmwasm-stargate": "^0.28.13",
     "@cosmjs/proto-signing": "^0.28.13",
     "@keplr-wallet/types": "^0.10.24",
+    "@noahsaso/cosmodal": "^0.6.1",
+    "@types/styled-components": "^5.1.26",
+    "buffer": "^6.0.3",
     "chess.js": "^0.12.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-is": "^18.2.0",
     "react-router": "^6.2.2",
-    "react-router-dom": "^6.2.2"
+    "react-router-dom": "^6.2.2",
+    "styled-components": "^5.3.5"
   },
   "devDependencies": {
+    "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
+    "@rollup/plugin-inject": "^4.0.4",
     "@types/chess.js": "^0.11.2",
     "@types/chessboardjs": "^0.3.2",
     "@types/react": "^18.0.19",
@@ -31,5 +38,12 @@
     "@vitejs/plugin-react": "^2.1.0",
     "typescript": "^4.8.3",
     "vite": "^3.1.0"
+  },
+  "resolutions": {
+    "@noahsaso/cosmodal/@keplr-wallet/common": "^0.10.24",
+    "@noahsaso/cosmodal/@keplr-wallet/cosmos": "^0.10.24",
+    "@noahsaso/cosmodal/@keplr-wallet/crypto": "^0.10.24",
+    "@noahsaso/cosmodal/@keplr-wallet/provider": "^0.10.24",
+    "@noahsaso/cosmodal/@keplr-wallet/stores": "^0.10.24"
   }
 }

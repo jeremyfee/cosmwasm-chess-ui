@@ -7,13 +7,13 @@ export interface ProfileProps {
 }
 
 export function Profile(props: ProfileProps) {
-  const { address, connect, disconnect } = props.cosmWasm;
+  const { address, connect, connected, disconnect, name } = props.cosmWasm;
 
   return (
     <div className="profile">
-      {address ? (
+      {connected ? (
         <>
-          <button onClick={disconnect}>Disconnect Keplr</button>
+          <button onClick={disconnect}>Disconnect {name}</button>
           <br />
           <small>
             <Address address={address} />
