@@ -114,6 +114,19 @@ export class CosmWasmChess {
     return this.client.execute(this.contract, { create_challenge: data });
   }
 
+  async declareTimeout(
+    game_id: number,
+    fee?: number | StdFee | "auto"
+  ): Promise<ExecuteResult> {
+    return this.client.execute(
+      this.contract,
+      {
+        turn: { game_id, action: { move: "timeout" } },
+      },
+      fee
+    );
+  }
+
   async getChallenges({
     after,
     player,

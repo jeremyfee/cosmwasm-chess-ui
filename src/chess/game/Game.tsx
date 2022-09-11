@@ -58,7 +58,7 @@ export function Game() {
   // load the game
   useEffect(() => {
     loadGame();
-  }, [contract.address, contract.client, game_id]);
+  }, [game_id]);
 
   function estimateFee(game: ChessGame): number | StdFee | "auto" {
     let gas = "200000";
@@ -98,7 +98,30 @@ export function Game() {
           )}
         </dd>
         <dt>Block Limit</dt>
-        <dd>{formatBlockTime(game.block_limit)}</dd>
+        <dd>
+          {formatBlockTime(game.block_limit)}
+          {game.block_limit ? (
+            <>
+              {" "}
+              <button
+                className="declareTimeout"
+                disabled={
+                  // game is over
+                  !!game.status ||
+                  // game is not started
+                  game.moves.length === 0 ||
+                  // current user is not player
+                  !(game.player1 === address || game.player2 === address)
+                }
+                onClick={onDeclareTimeoutClick}
+              >
+                Declare Timeout
+              </button>
+            </>
+          ) : (
+            <></>
+          )}
+        </dd>
       </dl>
     );
   }
@@ -151,6 +174,17 @@ export function Game() {
         : state;
     });
     updateGame();
+  }
+
+  async function onDeclareTimeoutClick(): Promise<void> {
+    if (!game_id || !state.game?.block_limit) {
+      return;
+    }
+    setStatus(`Declaring Timeout`);
+    return contract
+      .declareTimeout(+game_id, state.fee)
+      .then(loadGame)
+      .catch(setError);
   }
 
   async function onMakeMoveClick(): Promise<void> {
