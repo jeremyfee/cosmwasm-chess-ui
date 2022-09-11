@@ -61,7 +61,7 @@ export function ChallengeSummary(props: ChallengeElProps) {
         </p>
         {c.block_limit ? (
           <p className="block_limit">
-            <small>Block Limit</small>
+            <small>Block Limit (entire game, per player)</small>
             <br />
             <span className="player">{formatBlockTime(c.block_limit)}</span>
           </p>

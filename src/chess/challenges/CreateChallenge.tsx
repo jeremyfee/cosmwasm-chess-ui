@@ -58,7 +58,7 @@ export function CreateChallenge(props: CreateChallengeProps) {
       <label htmlFor="create_challenge_block_limit">
         Block Time Limit
         <br />
-        <small>(per player, ~10 blocks/min)</small>
+        <small>(entire game, per player, ~10 blocks/min)</small>
       </label>
       <input
         id="create_challenge_block_limit"

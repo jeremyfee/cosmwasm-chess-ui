@@ -97,7 +97,9 @@ export function Game() {
             <Address address={game.player2} />
           )}
         </dd>
-        <dt>Block Limit</dt>
+        <dt>
+          Block Limit <small>(entire game, per player)</small>
+        </dt>
         <dd>
           {formatBlockTime(game.block_limit)}
           {!game.status && (game.block_limit || game.block_limit === 0) ? (

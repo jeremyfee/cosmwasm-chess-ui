@@ -52,7 +52,7 @@ export function GameSummary(props: GameSummaryProps) {
         </p>
         {g.block_limit || g.block_limit === 0 ? (
           <p className="block_limit">
-            <small>Block Limit</small>
+            <small>Block Limit (entire game, per player)</small>
             <br />
             <span className="player">{formatBlockTime(g.block_limit)}</span>
           </p>
