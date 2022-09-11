@@ -1,5 +1,5 @@
 export function formatBlockTime(num_blocks?: number, s_per_block = 6): string {
-  if (!num_blocks) {
+  if (!num_blocks && num_blocks !== 0) {
     return "none";
   }
   let out = [];
@@ -19,7 +19,7 @@ export function formatBlockTime(num_blocks?: number, s_per_block = 6): string {
     seconds = seconds % 60;
     out.push(`${minutes}m`);
   }
-  if (out.length < 2 && seconds > 0) {
+  if ((out.length < 2 && seconds > 0) || out.length === 0) {
     seconds = Math.round(seconds);
     out.push(`${seconds}s`);
   }

@@ -62,7 +62,7 @@ export function CreateChallenge(props: CreateChallengeProps) {
       </label>
       <input
         id="create_challenge_block_limit"
-        min="0"
+        min="200"
         name="block_limit"
         onChange={onChange}
         placeholder="optional"

@@ -50,7 +50,7 @@ export function GameSummary(props: GameSummaryProps) {
             {address === g.player2 ? "you" : <Address address={g.player2} />}
           </span>
         </p>
-        {g.block_limit ? (
+        {g.block_limit || g.block_limit === 0 ? (
           <p className="block_limit">
             <small>Block Limit</small>
             <br />
