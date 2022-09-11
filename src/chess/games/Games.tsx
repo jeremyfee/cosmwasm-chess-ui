@@ -8,16 +8,26 @@ import { GameSummary } from "./GameSummary";
 export function Games() {
   const contract = useOutletContext<CosmWasmChess>();
   const [state, setState] = useState<{
+    // list of max game_id where previous page ended (for previous button)
+    after: number[];
     games?: ChessGameSummary[];
+    // whether to show games that are over
+    game_over?: boolean;
+    // whether loading
+    loading?: boolean;
+    // whether to show only games for current address
+    player_only?: boolean;
     status?: ReactNode;
     error?: unknown;
-  }>({});
+  }>({
+    after: [],
+    game_over: !!contract.address,
+    player_only: !!contract.address,
+  });
 
   useEffect(() => {
-    if (contract.address || contract.client) {
-      loadGames();
-    }
-  }, [contract.address, contract.client]);
+    loadGames();
+  }, [contract.address, state.after, state.game_over, state.player_only]);
 
   // sort player games first when connected
   useEffect(() => {
@@ -25,11 +35,16 @@ export function Games() {
   }, [contract.address]);
 
   async function loadGames(): Promise<void> {
-    setState({ ...state, status: "Loading games" });
+    setState({ ...state, loading: true, status: "Loading games" });
     return contract
       .getGames({
-        // worry about filtering once there are too many games
-        /* player: contract.address */
+        // filters now that there are too many games
+        after:
+          state.after.length > 0
+            ? state.after[state.after.length - 1]
+            : undefined,
+        game_over: state.game_over,
+        player: state.player_only ? contract.address : undefined,
       })
       .then((games: ChessGameSummary[]) => {
         setState((state) => {
@@ -42,15 +57,61 @@ export function Games() {
               </>
             );
           }
-          return { ...state, games, status };
+          return { ...state, games, loading: undefined, status };
         });
       })
       .catch((error: any) => {
         setState((state) => {
-          return { ...state, error, status: undefined };
+          return { ...state, error, loading: undefined, status: undefined };
         });
       })
       .then(updateGames);
+  }
+
+  function nextPage(): void {
+    const after = state.after.slice();
+    if (state.games && state.games.length) {
+      after.push(Math.max(...state.games.map((g) => g.game_id)));
+    }
+    setState((state) => {
+      return {
+        ...state,
+        after,
+      };
+    });
+  }
+
+  function previousPage(): void {
+    const after = state.after.slice();
+    after.pop();
+    setState((state) => {
+      return {
+        ...state,
+        after,
+      };
+    });
+  }
+
+  function toggleGameOver(): void {
+    setState((state) => {
+      return {
+        ...state,
+        // reset after since page sizes change
+        after: [],
+        game_over: !state.game_over,
+      };
+    });
+  }
+
+  function togglePlayerOnly(): void {
+    setState((state) => {
+      return {
+        ...state,
+        // reset after since page sizes change
+        after: [],
+        player_only: !state.player_only,
+      };
+    });
   }
 
   async function updateGames(): Promise<void> {
@@ -91,7 +152,6 @@ export function Games() {
         <h2>Games</h2>
         {state.error ? <p className="error">{`${state.error}`}</p> : <></>}
         {state.status ? <p className="status">{state.status}</p> : <></>}
-
         {playerGames.length > 0 ? (
           <>
             <h3>Your Games</h3>
@@ -113,6 +173,43 @@ export function Games() {
         ) : (
           <></>
         )}
+      </div>
+
+      <div className="games-actions">
+        <h3>Page {state.after.length + 1}</h3>
+        <div className="games-actions-buttons">
+          <button
+            onClick={previousPage}
+            disabled={state.loading || state.after.length == 0}
+          >
+            Previous Page
+          </button>
+          <button
+            onClick={nextPage}
+            disabled={state.loading || !state.games || state.games.length < 25}
+          >
+            Next Page
+          </button>
+        </div>
+
+        <label>
+          <input
+            type="checkbox"
+            checked={state.player_only}
+            disabled={state.loading}
+            onChange={togglePlayerOnly}
+          />
+          Only Your Games
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={state.game_over}
+            disabled={state.loading}
+            onChange={toggleGameOver}
+          />
+          Show Game Over
+        </label>
       </div>
     </div>
   );

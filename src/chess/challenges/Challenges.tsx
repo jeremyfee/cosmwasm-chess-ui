@@ -23,7 +23,7 @@ export function Challenges() {
 
   useEffect(() => {
     loadChallenges();
-  }, [contract.address, contract.client]);
+  }, [contract.address]);
 
   async function loadChallenges(): Promise<void> {
     setState({ ...state, status: "Loading challenges" });
@@ -55,7 +55,7 @@ export function Challenges() {
             </>
           );
         }
-        setState({ ...state, challenges, status });
+        setState({ ...state, challenges, error: undefined, status });
       })
       .catch((error: any) => {
         setState({ ...state, error, status: undefined });
